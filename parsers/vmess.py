@@ -19,7 +19,7 @@ def parse(data):
                 'server_port': int(_path[1].split(":")[1]),
                 'uuid': _path[0].split(":")[1],
                 'security': _path[0].split(":")[0],
-                'alter_Id': int(netquery.get('alterId','99')),
+                'alter_id': int(netquery.get('alterId','99')),
                 'packet_encoding': 'xudp'
             }
             if netquery.get('tls') and netquery['tls'] != '':
@@ -60,7 +60,7 @@ def parse(data):
         'server_port': int(item.get('port')),
         'uuid': item.get('id'),
         'security': item.get('scy') if item.get('scy') else 'auto',
-        'alter_Id': int(item.get('aid','99')),
+        'alter_id': int(item.get('aid','99')),
         'packet_encoding': 'xudp'
     }
     if node['security'] == 'gun':
@@ -69,7 +69,7 @@ def parse(data):
         node['tls']={
             'enabled': True,
             'insecure': True,
-            'server_name': item.get('host', '')
+            'server_name': item.get('host', '') if item.get("net") not in ['h2', 'http'] else ''
         }
         if item.get('sni'):
             node['tls']['server_name'] = item['sni']
@@ -78,23 +78,27 @@ def parse(data):
                 'fingerprint': item.get('fp', '')
             }
     if item.get("net"):
-        if item['net'] == 'hs':
+        if item['net'] in ['h2', 'http']:
             node['transport'] = {
                 'type':'http'
             }
             if item.get('host'):
-                node['transport']['host'] = item['host'].split(',')[0]
+                node['transport']['host'] = item['host']
             if item.get('path'):
-                node['transport']['path'] = item['path'].rsplit("?")[0]
+                if type(item.get('path')) == str:
+                    node['transport']['path'] = item['path'].rsplit("?")[0]
+                else:
+                    node['transport']['method'] = 'GET'
+                    node['transport']['path'] = item['path'][0]
         if item['net'] == 'ws':
             node['transport'] = {
                 'type':'ws',
-                'path':item.get('path', '').rsplit("?")[0],
+                'path':str(item.get('path', '')).rsplit("?")[0],
                 'headers': {
                     'Host': item.get('host', '')
                 }
             }
-            if '?ed' in item.get('path'):
+            if '?ed=' in str(item.get('path', '')):
                 node['transport']['early_data_header_name'] = 'Sec-WebSocket-Protocol'
                 node['transport']['max_early_data'] = int(item.get('path').rsplit("?ed=")[1])
         if item['net'] == 'quic':

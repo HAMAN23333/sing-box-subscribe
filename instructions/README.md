@@ -6,6 +6,8 @@ It is not suitable for people who are completely unfamiliar with the sing-box co
 
 Please refer to: [http://sing-box.sagernet.org/configuration](http://sing-box.sagernet.org/configuration/).
 
+# The SSR protocol script is not parsed by default. If the subscription link contains the SSR protocol, an error will be reported.
+
 ## Feature
 
 **sing-box web parser**
@@ -20,7 +22,7 @@ For example, the website I built [https://sing-box-subscribe.vercel.app](https:/
 https://xxxxxxx.vercel.app/config/url=https://xxxxxxsubscribe?token=123456/&file=https://github.com/Toperlock/sing-box-subscribe/raw/main/config_template/config_template_groups_tun.json
 ```
 
-2023.10.26 Update: Support adding `emoji`, `tag`, `prefix`, `UA`, `file` parameters after the link. Use `&` to connect multiple parameters. The usage is the same as the parameters in `providers.json`
+### 2023.10.26 Update: Support adding `emoji`, `tag`, `prefix`, `UA`, `file` parameters after the link. Use `&` to connect multiple parameters. The usage is the same as the parameters in `providers.json`
 
 `/config/URL_LINK/&emoji=1&prefix=♥&UA=v2rayng&file=https://xxxxxxxxx.json`
 
@@ -28,7 +30,19 @@ The above example shows: enable emoji, add ♥ before the node name, use v2rayng
 
 Example: https://sing-box-subscribe.vercel.app/config/https://gist.githubusercontent.com/Toperlock/b1ca381c32820e8c79669cbbd85b68ac/raw/dafae92fbe48ff36dae6e5172caa1cfd7914cda4/gistfile1.txt/&file=https://github.com/Toperlock/sing-box-subscribe/raw/main/config_template/config_template_groups_tun.json
 
-2023.11.04 Update: Two sub links can be processed, the format is: `/config/URL_LINK_1|URL_LINK_2`, `emoji`, `tag`, `prefix`, `UA`, `file` parameters cannot be written
+### 2023.11.04 Update: Two sub links can be processed, the format is: `/config/URL encoding`, `emoji`, `tag`, `prefix`, `UA`, `file` parameters cannot be written
+
+Use `|` to connect the two sub links and then [URL encode](https://www.urlencoder.org/) and put them after `config/`, as shown in the figure:
+
+<div align="left">
+  <img src="https://github.com/Toperlock/sing-box-subscribe/assets/86833913/5ed8e9de-3296-4dfc-ad65-2e181017829e" alt="how-to-use" width="50%" />
+</div>
+
+Example: https://sing-box-subscribe.vercel.app/config/https%3A%2F%2Fgist.githubusercontent.com%2FToperlock%2Fb1ca381c32820e8c79669cbbd85b68ac%2Fraw%2Fdafae92fbe48ff36dae6e5172caa1cfd7914cda4%2Fgistfile1.txt%7Chttps%3A%2F%2Fgist.githubusercontent.com%2FToperlock%2Ffa2fdc5f827ff7d288c23d568db75412%2Fraw%2F6c3b725da347f57b0021b806dfca5f51e1660746%2F1.yaml
+
+### 2023.11.10 Update: The `file` parameter can be simplified and written as a number `1`, `2` represents the use of the template serial number provided in the github repository
+
+Example: https://sing-box-subscribe.vercel.app/config/https://gist.githubusercontent.com/Toperlock/b1ca381c32820e8c79669cbbd85b68ac/raw/dafae92fbe48ff36dae6e5172caa1cfd7914cda4/gistfile1.txt/&file=2
 
 ### Demo video
 
@@ -110,9 +124,13 @@ Android use chrome browser to open the webpage to generate the configuration fil
 
 ## 🎬 Demonstration video
 
-|Web parsing sub link|Web parsing URI links|Android Chrome page shrink|
-|-----------------------------|-----------------------------|-----------------------------|
-|<video controls width="250" src="https://github.com/Toperlock/sing-box-subscribe/assets/86833913/9f8f1a70-58b1-4117-a650-f956d9249e43"></video>|<video controls width="250" src="https://github.com/Toperlock/sing-box-subscribe/assets/86833913/63e180ad-eead-433f-8ee8-73055dafbd56"></video>|<video controls width="250" src="https://github.com/Toperlock/sing-box-subscribe/assets/86833913/cb149206-307f-4de8-9968-9832dcf8268a"></video>
+|Web parsing sub link|Web parsing URI links|
+|-----------------------------|-----------------------------|
+|<video controls width="250" src="https://github.com/Toperlock/sing-box-subscribe/assets/86833913/9f8f1a70-58b1-4117-a650-f956d9249e43"></video>|<video controls width="250" src="https://github.com/Toperlock/sing-box-subscribe/assets/86833913/63e180ad-eead-433f-8ee8-73055dafbd56"></video>|
+
+|Android Chrome page shrink|Web directly parse base64|
+|-----------------------------|-----------------------------|
+|<video controls width="250" src="https://github.com/Toperlock/sing-box-subscribe/assets/86833913/cb149206-307f-4de8-9968-9832dcf8268a"></video>|<video controls width="250" src="https://github.com/Toperlock/sing-box-subscribe/assets/86833913/0081f055-2cd4-46bb-a4a9-7aac7d5f93a5"></video>|
 
 |Local parsing sub link|Local parsing URI links|
 |-----------------------------|-----------------------------|
@@ -205,7 +223,7 @@ In this file, you can add subscription links and basic settings.
     },
     "save_config_path": "./config.json",
     "auto_backup": false,
-    "exlude_protocol": "ssr", //Not parsing ssr nodes
+    "exclude_protocol": "ssr", //Not parsing ssr nodes
     "config_template": "", //Customize the correct web page json configuration template link
     "Only-nodes": false //Output the complete sing-box configuration
 }
@@ -232,9 +250,9 @@ In this file, you can add subscription links and basic settings.
 
 <details>
       <summary>tag screenshot reference</summary>
-  
+
 <div align="left">
-  <img src="https://github.com/Toperlock/sing-box-subscribe/assets/86833913/b8673073-7160-429f-9ced-3eae7925036e" alt="download" width="65%" />
+  <img src="https://github.com/Toperlock/sing-box-subscribe/assets/86833913/781c5bb7-c5c5-467e-a6ae-05ff44a19973" alt="download" width="65%" />
 </div>
 
 </details>
@@ -270,7 +288,7 @@ In this file, you can add subscription links and basic settings.
 - `auto_backup`: Optional.
 > When set to true, the script will rename the currently used sing-box configuration file to `original_filename.current_time.bak` for backup purposes, in case an incorrect configuration file is generated and needs to be restored.
 
-- `exlude_protocol`: Optional.
+- `exclude_protocol`: Optional.
 > Set the protocols to exclude, separated by commas, e.g., ssr, vmess.
 
 > Sharing links using protocols in this setting will be ignored.
@@ -302,7 +320,7 @@ The template files are similar to sing-box configs, but with some new parameters
   ],
   "filter":[
     //This filter will remove nodes containing ˣ² in airport1_tag
-    {"action":"exlude","keywords":["ˣ²"],"for":["机场1"]}
+    {"action":"exclude","keywords":["ˣ²"],"for":["机场1"]}
   ]
 },
 {
@@ -316,7 +334,7 @@ The template files are similar to sing-box configs, but with some new parameters
     //If airport1_tag and airport2_tag have nodes with these names 'sg','新加坡','tw','台湾' they collectively form the netflix group
     {"action":"include","keywords":["sg|新加坡|tw|台湾"]},
     //The "for" is set to airport1_tag, which means that this rule only works on airport1_tag
-    {"action":"exlude","keywords":["ˣ²"],"for":["机场1"]}
+    {"action":"exclude","keywords":["ˣ²"],"for":["机场1"]}
     //This filter will remove nodes containing ˣ² in airport1_tag
   ]
 }
@@ -352,7 +370,7 @@ Multiple rules will be executed in order.
 
 ## Hide the cmd window that pops up when Windows runs sing-box
 
-> Use WinSW to set sing-box.exe as a Windows service, [WinSW tutorial](https://blog.xuven.xyz/post/WinSW/)
+> Use WinSW to set sing-box.exe as a Windows service, [WinSW tutorial](https://github.com/winsw/winsw)
 
 > XML configuration file modification
 ```xml
@@ -373,6 +391,28 @@ Multiple rules will be executed in order.
 </div>
 
 </details>
+
+## In non-graphical clients, operations without using tun
+
+For example, if you use the kernel to run sing-box on Windows, delete the tun field in the inbounds:
+
+```json
+"inbounds": [
+    {
+      "type": "mixed",
+      "listen": "127.0.0.1",
+      "listen_port": 2080, //This port must be consistent with the windows proxy port
+      "sniff": true,
+      "set_system_proxy": true,
+      "sniff_override_destination": false,
+      "domain_strategy": "ipv4_only"
+    }
+  ]
+```
+
+<div align="left">
+  <img src="https://github.com/Toperlock/sing-box-subscribe/assets/86833913/387f2077-b8b6-42ed-9658-361b28179db2" alt="download" width="50%" />
+</div>
 
 <details>
       <summary><b>Effect Reference</b></summary>

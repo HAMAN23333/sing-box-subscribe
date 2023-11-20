@@ -22,13 +22,19 @@ def clash2v2ray(share_link):
             vmess_info['verify_cert'] = True
         if share_link.get('tls') and share_link['tls'] != False:
             vmess_info['tls'] = 'tls'
+            vmess_info["sni"] = share_link.get('servername', '')
         if vmess_info['net'] == 'grpc':
             vmess_info["type"] = share_link.get('grpc-opts', {}).get('grpc-mode')
-            vmess_info["sni"] = share_link.get('servername', '')
             if share_link.get('grpc-opts', {}).get('grpc-service-name') != '/':
                 vmess_info["path"] = share_link.get('grpc-opts', {}).get('grpc-service-name')
             else:
                 vmess_info["path"] = ''
+        elif vmess_info['net'] == 'h2':
+            vmess_info['host'] = share_link.get('h2-opts', {}).get('host', [])
+            vmess_info["path"] = share_link.get('h2-opts', {}).get('path', '')
+        elif vmess_info['net'] == 'http':
+            vmess_info["host"] = share_link.get('http-opts', {}).get('headers', {}).get('Host', [])
+            vmess_info["path"] = share_link.get('http-opts', {}).get('path', '[]')
         if share_link.get('smux',{}).get('enabled', '') == True:
             vmess_info["protocol"] = share_link['smux']['protocol']
             vmess_info["max_connections"] = share_link['smux'].get('max-connections','')
@@ -151,13 +157,14 @@ def clash2v2ray(share_link):
             "fp": share_link.get('client-fingerprint', ''),
             "type": share_link.get('network', 'tcp'),
             "flow": share_link.get('flow', ''),
+            'allowInsecure': '0' if share_link.get('skip-cert-verify') == False else '1',
             "name": quote(share_link['name'], 'utf-8')
         }
         if vless_info['type'] == 'ws':
             vless_info["security"] = 'tls'
             vless_info["path"] = quote(share_link['ws-opts'].get('path', ''), 'utf-8')
             vless_info["host"] = share_link['ws-opts'].get('headers', {}).get('Host', '')
-            link = "vless://{uuid}@{server}:{port}?encryption=none&security={security}&sni={sni}&fp={fp}&type={type}&host={host}&path={path}&flow={flow}".format(**vless_info)
+            link = "vless://{uuid}@{server}:{port}?encryption=none&security={security}&sni={sni}&fp={fp}&type={type}&host={host}&path={path}&flow={flow}&allowInsecure={allowInsecure}".format(**vless_info)
         if vless_info['type'] == 'grpc':
             if share_link.get('grpc-opts').get('grpc-service-name') != '/' :
                 vless_info["serviceName"] = unquote(share_link.get('grpc-opts').get('grpc-service-name'))
@@ -167,22 +174,22 @@ def clash2v2ray(share_link):
                 vless_info["security"] = 'reality'
                 vless_info["pbk"] = share_link['reality-opts']['public-key']
                 vless_info["sid"] = share_link.get('reality-opts', {}).get('short-id', '')
-                link = "vless://{uuid}@{server}:{port}?encryption=none&security={security}&sni={sni}&type={type}&serviceName={serviceName}&fp={fp}&flow={flow}&pbk={pbk}&sid={sid}".format(**vless_info)
+                link = "vless://{uuid}@{server}:{port}?encryption=none&security={security}&sni={sni}&type={type}&serviceName={serviceName}&fp={fp}&flow={flow}&allowInsecure={allowInsecure}&pbk={pbk}&sid={sid}".format(**vless_info)
             else:
                 vless_info["security"] = 'tls'
-                link = "vless://{uuid}@{server}:{port}?encryption=none&security={security}&sni={sni}&type={type}&serviceName={serviceName}&fp={fp}&flow={flow}".format(**vless_info)
+                link = "vless://{uuid}@{server}:{port}?encryption=none&security={security}&sni={sni}&type={type}&serviceName={serviceName}&fp={fp}&flow={flow}&allowInsecure={allowInsecure}".format(**vless_info)
         if vless_info['type'] == 'tcp':
             if share_link.get('reality-opts'):
                 vless_info["security"] = 'reality'
                 vless_info["pbk"] = share_link['reality-opts']['public-key']
                 vless_info["sid"] = share_link.get('reality-opts', {}).get('short-id', '')
-                link = "vless://{uuid}@{server}:{port}?encryption=none&security={security}&sni={sni}&serverName={sni}&type={type}&fp={fp}&flow={flow}&pbk={pbk}&sid={sid}".format(**vless_info)
+                link = "vless://{uuid}@{server}:{port}?encryption=none&security={security}&sni={sni}&serverName={sni}&type={type}&fp={fp}&flow={flow}&allowInsecure={allowInsecure}&pbk={pbk}&sid={sid}".format(**vless_info)
             else:
                 if share_link.get('tls') == False:
                     vless_info["security"] = 'none'
                 else:
                     vless_info["security"] = 'tls'
-                link = "vless://{uuid}@{server}:{port}?encryption=none&security={security}&sni={sni}&serverName={sni}&type={type}&fp={fp}&flow={flow}".format(**vless_info)
+                link = "vless://{uuid}@{server}:{port}?encryption=none&security={security}&sni={sni}&serverName={sni}&type={type}&fp={fp}&flow={flow}&allowInsecure={allowInsecure}".format(**vless_info)
         if share_link.get('smux',{}).get('enabled', '') == True:
             vless_info["protocol"] = share_link['smux']['protocol']
             vless_info["max_connections"] = share_link['smux'].get('max-connections','')
@@ -228,7 +235,7 @@ def clash2v2ray(share_link):
         # TODO
     elif share_link['type'] == 'hysteria2':
         link = "hysteria2://{auth}@{server}:{port}?insecure={allowInsecure}&obfs={obfs}&obfs-password={obfspassword}&pinSHA256={fingerprint}&sni={sni}&alpn={alpn}&upmbps={upmbps}&downmbps={downmbps}#{name}".format(
-        auth = share_link['password'],
+        auth = share_link.get('password', share_link.get('auth', '')),
         server = share_link['server'],
         port = share_link['port'],
         allowInsecure = '0' if share_link.get('skip-cert-verify', '') == False else '1',
@@ -253,10 +260,11 @@ def clash2v2ray(share_link):
             "ip": share_link['ip'],
             "name": quote(share_link['name'], 'utf-8')
         }
-        if type(share_link.get('reserved')) == list:
-            warp_info['reserved'] = ','.join(str(item) for item in share_link.get('reserved'))
-        else:
+        warp_info['reserved'] = '0,0,0'
+        if type(share_link.get('reserved')) == str:
             warp_info['reserved'] = share_link.get('reserved', '')
+        if type(share_link.get('reserved')) != type(None):
+            warp_info['reserved'] = ','.join(str(item) for item in share_link.get('reserved'))
         if share_link.get('ipv6'):
             warp_info['ipv6'] = share_link['ipv6']
             link = "wg://{server}:{port}?publicKey={publicKey}&privateKey={privateKey}&presharedKey={presharedKey}&ip={ip},{ipv6}&udp=1&reserved={reserved}#{name}".format(**warp_info)
@@ -266,14 +274,19 @@ def clash2v2ray(share_link):
         # TODO
     elif share_link['type'] == 'http':
         http_info = {
-            "user": share_link['username'],
-            "password": share_link['password'],
             "server": share_link['server'],
             "port": share_link['port'],
-            "name": quote(share_link.get('name', ''), 'utf-8')
         }
-        base_link = base64.b64encode("{user}:{password}@{server}:{port}/#{name}".format(**http_info).encode('utf-8')).decode('utf-8')
-        link = f"https://{base_link}"
+        if share_link.get('username'):
+            if share_link['password']:
+                http_info ["user"] = share_link['username']
+                http_info ["password"] = share_link['password']
+                base_link = base64.b64encode("{user}:{password}@{server}:{port}".format(**http_info).encode('utf-8')).decode('utf-8')
+        else:
+            base_link = base64.b64encode("{server}:{port}".format(**http_info).encode('utf-8')).decode('utf-8')
+        link = f"http://{base_link}"
+        if share_link.get('name'):
+            link += f"#{share_link['name']}"
         return link
         # TODO
     elif share_link['type'] == 'socks5':
@@ -281,8 +294,11 @@ def clash2v2ray(share_link):
             "server": share_link['server'],
             "port": share_link['port'],
         }
-        if share_link.get('username') and share_link.get('password'):
-            base_link = base64.b64encode("{user}:{password}@{server}:{port}".format(**socks5_info).encode('utf-8')).decode('utf-8')
+        if share_link.get('username'):
+            if share_link['password']:
+                socks5_info ["user"] = share_link['username']
+                socks5_info ["password"] = share_link['password']
+                base_link = base64.b64encode("{user}:{password}@{server}:{port}".format(**socks5_info).encode('utf-8')).decode('utf-8')
         else:
             base_link = base64.b64encode("{server}:{port}".format(**socks5_info).encode('utf-8')).decode('utf-8')
         link = f"socks://{base_link}"
